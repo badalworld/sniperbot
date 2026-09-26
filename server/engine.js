@@ -33,6 +33,18 @@ const DEFAULTS = {
   port: 8080,
 };
 
+/* Translates raw MEXC errors into actionable messages for live trading */
+function friendlyMexcError(e) {
+  const m = String((e && e.message) || e);
+  if (/timestamp|recv.?window|expired|request.?time/i.test(m)) return m + ' — your PC clock is out of sync. Sync your system clock and restart the bot.';
+  if (/signature|sign|apikey|api.?key/i.test(m)) return m + ' — check your API key/secret and that your IP is allowed (Futures trade permission must be ON).';
+  if (/position.?mode|one.?way|hedge/i.test(m)) return m + ' — set your MEXC Futures account to Hedge Mode (Preferences → Position Mode).';
+  if (/insufficient|balance|margin/i.test(m)) return m + ' — not enough available USDT margin.';
+  if (/leverage/i.test(m)) return m + ' — leverage not allowed for this symbol, lower it in settings.';
+  if (/risk.?limit|limit/i.test(m)) return m + ' — symbol risk limit reached, try a smaller margin.';
+  return m;
+}
+
 function todayKey(ts) { const d = new Date(ts || Date.now()); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 
 class Engine {
@@ -158,7 +170,7 @@ class Engine {
       startBalance = +u.equity;
       this.balance = { equity: +u.equity, available: +u.availableBalance, positionMargin: +u.positionMargin, unrealized: +u.unrealized, updatedAt: Date.now(), ok: true, error: null };
     } catch (e) {
-      return { ok: false, error: 'MEXC API validation failed: ' + e.message + ' — check your keys / IP whitelist (enable Futures permission)' };
+      return { ok: false, error: 'MEXC API validation failed: ' + friendlyMexcError(e) };
     }
 
     // season start
@@ -605,6 +617,8 @@ class Engine {
   /* ---------------- order execution ---------------- */
   async openPosition(symbol, side, aiRes, sig) {
     const s = this.settings;
+    if (this.positions.size >= s.maxOpenTrades) return { ok: false, error: 'max open trades reached' };
+    if (this.positions.has(symbol)) return { ok: false, error: 'position already open on ' + symbol };
     const t = this.scanner.tickers.get(symbol);
     const d = this.scanner.details.get(symbol);
     if (!t || !t.lastPrice) return { ok: false, error: 'no price' };
@@ -640,9 +654,10 @@ class Engine {
         leverage: lev, stopLossPrice: slPrice, externalOid,
       });
     } catch (e) {
+      const msg = friendlyMexcError(e);
       logger.error('OPEN FAIL ' + symbol + ': ' + e.message);
-      this.emit('alert', 'Order rejected on ' + symbol + ': ' + e.message);
-      return { ok: false, error: e.message };
+      this.emit('alert', 'Order rejected on ' + symbol + ': ' + msg);
+      return { ok: false, error: msg };
     }
 
     const pos = {
@@ -735,7 +750,7 @@ class Engine {
       logger.error('CLOSE FAIL ' + pos.symbol + ': ' + e.message);
       pos.closing = false;
       pos.closeOrderSentAt = Date.now() - 30000; // let reconcile retry
-      this.emit('alert', 'Close failed on ' + pos.symbol + ': ' + e.message);
+      this.emit('alert', 'Close failed on ' + pos.symbol + ': ' + friendlyMexcError(e));
     }
   }
 
