@@ -167,6 +167,68 @@
     return out;
   }
 
+  /* ---------------- galaxy button (single SVG source, injected; cache-proof) ---------------- */
+  const GALAXY_SVG = `
+<svg class="g-galaxy" viewBox="0 0 100 100" aria-hidden="true" style="position:absolute;left:-9px;top:-9px;width:calc(100% + 18px);height:calc(100% + 18px);pointer-events:none;z-index:2;overflow:visible">
+  <defs>
+    <radialGradient id="ggCoreW"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#cabaff"/><stop offset="70%" stop-color="#6a3df0" stop-opacity=".38"/><stop offset="100%" stop-color="#6a3df0" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ggArmW" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#b18cff"/><stop offset="55%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#ff2bd6"/></linearGradient>
+    <linearGradient id="ggRimW" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8a5cff"/><stop offset="50%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#ff2bd6"/></linearGradient>
+    <radialGradient id="ggCoreR"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#ffb9c6"/><stop offset="70%" stop-color="#ff3b5c" stop-opacity=".42"/><stop offset="100%" stop-color="#ff3b5c" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ggArmR" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff8a5c"/><stop offset="55%" stop-color="#ff3b5c"/><stop offset="100%" stop-color="#ff2bd6"/></linearGradient>
+    <linearGradient id="ggRimR" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff3b5c"/><stop offset="50%" stop-color="#ff2bd6"/><stop offset="100%" stop-color="#ff8a5c"/></linearGradient>
+  </defs>
+  <g class="gid-w">
+    <circle cx="50" cy="50" r="48.4" fill="none" stroke="url(#ggRimW)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="205 100">
+      <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="9s" repeatCount="indefinite"/>
+    </circle>
+    <g opacity=".92">
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmW)" stroke-width="8.5" stroke-linecap="round" opacity=".45"/>
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmW)" stroke-width="3" stroke-linecap="round" opacity=".95"/>
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmW)" stroke-width="8.5" stroke-linecap="round" opacity=".45" transform="rotate(180 50 50)"/>
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmW)" stroke-width="3" stroke-linecap="round" opacity=".95" transform="rotate(180 50 50)"/>
+      <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="26s" repeatCount="indefinite"/>
+    </g>
+    <circle cx="50" cy="50" r="25" fill="url(#ggCoreW)"/>
+    <circle cx="38" cy="34" r="1.4" fill="#ffffff"><animate attributeName="opacity" values="1;.15;1" dur="2.2s" repeatCount="indefinite"/></circle>
+    <circle cx="60" cy="29" r="1" fill="#cfe9ff"><animate attributeName="opacity" values=".2;1;.2" dur="1.7s" repeatCount="indefinite"/></circle>
+    <circle cx="69" cy="45" r="1.6" fill="#ffffff"><animate attributeName="opacity" values="1;.25;1" dur="2.8s" repeatCount="indefinite"/></circle>
+    <circle cx="33" cy="52" r="1.1" fill="#e6d9ff"><animate attributeName="opacity" values=".3;1;.3" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="50" cy="24" r="1.2" fill="#ffffff"><animate attributeName="opacity" values="1;.2;1" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="44" cy="63" r="1.3" fill="#cfe9ff"><animate attributeName="opacity" values=".25;1;.25" dur="1.9s" repeatCount="indefinite"/></circle>
+    <circle cx="63" cy="65" r="1.1" fill="#ffffff"><animate attributeName="opacity" values="1;.2;1" dur="2.4s" repeatCount="indefinite"/></circle>
+    <circle cx="55" cy="44" r=".9" fill="#e6d9ff"><animate attributeName="opacity" values=".3;1;.3" dur="1.6s" repeatCount="indefinite"/></circle>
+  </g>
+  <g class="gid-r" display="none">
+    <circle cx="50" cy="50" r="48.4" fill="none" stroke="url(#ggRimR)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="205 100">
+      <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4.5s" repeatCount="indefinite"/>
+    </circle>
+    <g opacity=".95">
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmR)" stroke-width="8.5" stroke-linecap="round" opacity=".5"/>
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmR)" stroke-width="3" stroke-linecap="round" opacity=".95"/>
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmR)" stroke-width="8.5" stroke-linecap="round" opacity=".5" transform="rotate(180 50 50)"/>
+      <path d="M50 21 C 65 21 79 34 79 50 C 79 60 74 68 66 72" fill="none" stroke="url(#ggArmR)" stroke-width="3" stroke-linecap="round" opacity=".95" transform="rotate(180 50 50)"/>
+      <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="12s" repeatCount="indefinite"/>
+    </g>
+    <circle cx="50" cy="50" r="25" fill="url(#ggCoreR)"/>
+    <circle cx="38" cy="34" r="1.4" fill="#ffe0e6"><animate attributeName="opacity" values="1;.15;1" dur="2.2s" repeatCount="indefinite"/></circle>
+    <circle cx="60" cy="29" r="1" fill="#ffc9d2"><animate attributeName="opacity" values=".2;1;.2" dur="1.7s" repeatCount="indefinite"/></circle>
+    <circle cx="69" cy="45" r="1.6" fill="#ffe0e6"><animate attributeName="opacity" values="1;.25;1" dur="2.8s" repeatCount="indefinite"/></circle>
+    <circle cx="33" cy="52" r="1.1" fill="#ffc9d2"><animate attributeName="opacity" values=".3;1;.3" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="50" cy="24" r="1.2" fill="#ffe0e6"><animate attributeName="opacity" values="1;.2;1" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="44" cy="63" r="1.3" fill="#ffc9d2"><animate attributeName="opacity" values=".25;1;.25" dur="1.9s" repeatCount="indefinite"/></circle>
+    <circle cx="63" cy="65" r="1.1" fill="#ffe0e6"><animate attributeName="opacity" values="1;.2;1" dur="2.4s" repeatCount="indefinite"/></circle>
+    <circle cx="55" cy="44" r=".9" fill="#ffc9d2"><animate attributeName="opacity" values=".3;1;.3" dur="1.6s" repeatCount="indefinite"/></circle>
+  </g>
+</svg>`;
+
+  function ensureGalaxy() {
+    const btn = document.getElementById('powerBtn');
+    if (!btn || btn.querySelector('.g-galaxy')) return;
+    btn.classList.add('galaxy');
+    btn.insertAdjacentHTML('afterbegin', GALAXY_SVG);
+  }
+
   /* ---------------- modal ---------------- */
   function openModal(mode) {
     modalMode = mode;
@@ -446,6 +508,7 @@
   /* ---------------- wiring ---------------- */
   function wire() {
     renderCfg();
+    ensureGalaxy();
     $('powerBtn').addEventListener('click', () => {
       if (!STATE) return;
       if (STATE.running) openModal('stop');

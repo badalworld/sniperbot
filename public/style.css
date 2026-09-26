@@ -570,74 +570,33 @@ table.tbl th { box-shadow: inset 0 -2px 0 -1px rgba(0, 229, 255, .35); }
   .stat-grid .card { animation: none; }
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
-   GALAXY POWER BUTTON v2.2
-   stopped = deep-space violet galaxy · running = RED GIANT
+   GALAXY POWER BUTTON v2.3 — self-contained SVG galaxy
+   stopped = deep-space violet spiral galaxy · running = RED GIANT
+   All motion is SVG SMIL + basic transforms → works in every browser.
    ═══════════════════════════════════════════════════════════════ */
 .power-btn.galaxy {
-  border: none;
+  border: 2px solid rgba(138, 92, 246, .55);
   background:
-    radial-gradient(circle at 32% 28%, rgba(120, 84, 255, .55), transparent 55%),
-    radial-gradient(circle at 70% 75%, rgba(0, 229, 255, .25), transparent 55%),
-    radial-gradient(circle at 50% 50%, #150a3a 0%, #0a0628 45%, #040314 78%, #02020c 100%);
+    radial-gradient(circle at 32% 28%, rgba(124, 86, 255, .6), transparent 56%),
+    radial-gradient(circle at 70% 75%, rgba(0, 229, 255, .22), transparent 55%),
+    radial-gradient(circle at 50% 50%, #170b3f 0%, #0b0630 45%, #05031a 78%, #02020c 100%);
   box-shadow:
-    0 0 26px rgba(124, 82, 255, .5),
-    0 0 60px rgba(64, 0, 255, .18),
-    inset 0 0 26px rgba(90, 60, 220, .35),
-    inset 0 0 8px rgba(180, 160, 255, .25);
-  animation: galaxyBreathe 3.2s ease-in-out infinite;
+    0 0 24px rgba(124, 82, 255, .55),
+    0 0 58px rgba(70, 0, 255, .2),
+    inset 0 0 26px rgba(96, 62, 230, .4),
+    inset 0 0 8px rgba(190, 170, 255, .28);
+  animation: galaxyBreathe 3.4s ease-in-out infinite;
 }
-.power-btn.galaxy::before {           /* rotating rim light */
-  content: ''; position: absolute; inset: 0; border-radius: 50%;
-  padding: 2px;
-  background: conic-gradient(from 180deg, #8a5cff, #00e5ff, #ff2bd6, #8a5cff);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
-  animation: spin 8s linear infinite;
-  opacity: .95;
+.power-btn.galaxy .g-galaxy {
+  position: absolute; inset: -9px;
+  width: calc(100% + 18px); height: calc(100% + 18px);
+  z-index: 2; pointer-events: none; overflow: visible;
+  filter: drop-shadow(0 0 7px rgba(140, 100, 255, .45));
 }
-.power-btn.galaxy .g-swirl {          /* spiral arms + galactic core */
-  position: absolute; inset: 6%; border-radius: 50%;
-  background:
-    repeating-conic-gradient(from 0deg,
-      transparent 0deg, rgba(150, 110, 255, .34) 26deg, transparent 58deg,
-      rgba(0, 229, 255, .20) 96deg, transparent 132deg,
-      rgba(255, 43, 214, .17) 176deg, transparent 210deg);
-  filter: blur(5px);
-  animation: spin 16s linear infinite;
-  opacity: .9;
-}
-.power-btn.galaxy .g-swirl::after {
-  content: ''; position: absolute; left: 50%; top: 50%; width: 34%; height: 34%;
-  transform: translate(-50%, -50%); border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.9), rgba(186,160,255,.55) 40%, transparent 72%);
-  filter: blur(2px);
-}
-.power-btn.galaxy .g-stars {          /* twinkling star field */
-  position: absolute; inset: 0; border-radius: 50%;
-  background-image:
-    radial-gradient(1.3px 1.3px at 24% 30%, #fff 60%, transparent 61%),
-    radial-gradient(1px 1px at 62% 20%, #cfe9ff 60%, transparent 61%),
-    radial-gradient(1.6px 1.6px at 78% 56%, #fff 60%, transparent 61%),
-    radial-gradient(1px 1px at 36% 66%, #e6d9ff 60%, transparent 61%),
-    radial-gradient(1.2px 1.2px at 52% 44%, #ffffff 60%, transparent 61%),
-    radial-gradient(1px 1px at 16% 52%, #bfe9ff 60%, transparent 61%),
-    radial-gradient(1.4px 1.4px at 68% 78%, #fff 60%, transparent 61%),
-    radial-gradient(1px 1px at 44% 84%, #d9c9ff 60%, transparent 61%);
-  animation: twinkle 2.8s ease-in-out infinite alternate;
-}
-.power-btn.galaxy .g-clip {           /* clipping dome for the shooting star */
-  position: absolute; inset: 0; border-radius: 50%; overflow: hidden; pointer-events: none;
-}
-.power-btn.galaxy .g-shoot {
-  position: absolute; left: -26%; top: 18%; width: 26%; height: 2px; border-radius: 2px;
-  background: linear-gradient(90deg, transparent, #cfe9ff);
-  transform: rotate(-28deg);
-  opacity: 0;
-  animation: shoot 6.5s ease-in infinite 2.2s;
-}
-.power-btn.galaxy .g-orbit {          /* orbiting moon */
-  position: absolute; inset: -7px; border-radius: 50%;
+.power-btn.galaxy .g-orbit {
+  position: absolute; inset: -7px; border-radius: 50%; z-index: 1;
   border: 1px solid rgba(150, 120, 255, .4);
   animation: spin 7s linear infinite;
 }
@@ -646,40 +605,40 @@ table.tbl th { box-shadow: inset 0 -2px 0 -1px rgba(0, 229, 255, .35); }
   border-radius: 50%; background: #7df9ff;
   box-shadow: 0 0 8px #00e5ff, 0 0 14px rgba(0, 229, 255, .7);
 }
-.power-btn.galaxy .ring { display: none; }
-.power-btn.galaxy .pwr {
-  z-index: 3; color: #f2ecff;
-  text-shadow: 0 0 10px #b9a6ff, 0 0 26px rgba(138, 92, 246, .9), 0 0 44px rgba(0, 229, 255, .5);
+.power-btn.galaxy .g-clip {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden; pointer-events: none; z-index: 1;
 }
-.power-btn.galaxy .plabel { z-index: 3; color: #cfc3ff; text-shadow: 0 0 8px rgba(138, 92, 246, .8); }
+.power-btn.galaxy .g-shoot {
+  position: absolute; left: -26%; top: 18%; width: 26%; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #cfe9ff);
+  transform: rotate(-28deg);
+  opacity: 0;
+  animation: shoot 6.5s ease-in infinite 2.2s;
+}
+.power-btn.galaxy .pwr {
+  z-index: 3; position: relative; color: #f2ecff;
+  text-shadow: 0 0 10px #b9a6ff, 0 0 26px rgba(138, 92, 246, .95), 0 0 44px rgba(0, 229, 255, .5);
+}
+.power-btn.galaxy .plabel { z-index: 3; position: relative; color: #cfc3ff; text-shadow: 0 0 8px rgba(138, 92, 246, .8); }
 .power-btn.galaxy:hover { transform: scale(1.05); }
 .power-btn.galaxy:active { transform: scale(.96); }
+.power-btn.galaxy .ring { display: none; }
 
 /* ---- RUNNING = RED GIANT ---- */
 .power-btn.galaxy.running {
+  border-color: rgba(255, 59, 92, .6);
   background:
-    radial-gradient(circle at 32% 28%, rgba(255, 64, 96, .5), transparent 55%),
-    radial-gradient(circle at 70% 75%, rgba(255, 43, 214, .22), transparent 55%),
-    radial-gradient(circle at 50% 50%, #33081c 0%, #1c0512 45%, #0c0208 78%, #070106 100%);
+    radial-gradient(circle at 32% 28%, rgba(255, 64, 96, .55), transparent 56%),
+    radial-gradient(circle at 70% 75%, rgba(255, 43, 214, .2), transparent 55%),
+    radial-gradient(circle at 50% 50%, #36081e 0%, #1d0513 45%, #0d0209 78%, #070106 100%);
   box-shadow:
-    0 0 30px rgba(255, 59, 92, .55),
-    0 0 64px rgba(255, 0, 60, .2),
-    inset 0 0 26px rgba(255, 59, 92, .32),
-    inset 0 0 8px rgba(255, 170, 190, .25);
-  animation: galaxyBreatheRed 1.8s ease-in-out infinite;
+    0 0 28px rgba(255, 59, 92, .6),
+    0 0 62px rgba(255, 0, 60, .22),
+    inset 0 0 26px rgba(255, 59, 92, .38),
+    inset 0 0 8px rgba(255, 176, 195, .26);
+  animation: galaxyBreatheRed 1.9s ease-in-out infinite;
 }
-.power-btn.galaxy.running::before {
-  background: conic-gradient(from 0deg, #ff3b5c, #ff2bd6, #ff8a5c, #ff3b5c);
-  animation-duration: 3.5s;
-}
-.power-btn.galaxy.running .g-swirl {
-  background:
-    repeating-conic-gradient(from 0deg,
-      transparent 0deg, rgba(255, 80, 110, .36) 26deg, transparent 58deg,
-      rgba(255, 43, 214, .22) 96deg, transparent 132deg,
-      rgba(255, 140, 90, .18) 176deg, transparent 210deg);
-  animation-duration: 7s;
-}
+.power-btn.galaxy.running .g-galaxy { filter: drop-shadow(0 0 7px rgba(255, 59, 92, .5)); }
 .power-btn.galaxy.running .g-orbit { border-color: rgba(255, 90, 120, .5); animation-duration: 4s; }
 .power-btn.galaxy.running .g-orbit i {
   background: #ffb3c0;
@@ -691,21 +650,24 @@ table.tbl th { box-shadow: inset 0 -2px 0 -1px rgba(0, 229, 255, .35); }
 }
 .power-btn.galaxy.running .plabel { color: #ffc9d2; text-shadow: 0 0 8px rgba(255, 59, 92, .8); }
 
+/* color-group swap (violet ⇄ red giant) */
+.power-btn.galaxy .gid-r { display: none; }
+.power-btn.galaxy.running .gid-r { display: inline; }
+.power-btn.galaxy.running .gid-w { display: none; }
+
 @keyframes galaxyBreathe {
-  0%, 100% { box-shadow: 0 0 22px rgba(124, 82, 255, .42), 0 0 52px rgba(64, 0, 255, .14), inset 0 0 24px rgba(90, 60, 220, .3), inset 0 0 8px rgba(180, 160, 255, .22); }
-  50% { box-shadow: 0 0 36px rgba(124, 82, 255, .68), 0 0 78px rgba(64, 0, 255, .26), inset 0 0 32px rgba(90, 60, 220, .46), inset 0 0 10px rgba(180, 160, 255, .34); }
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 82, 255, .45), 0 0 48px rgba(70, 0, 255, .15), inset 0 0 22px rgba(96, 62, 230, .34), inset 0 0 8px rgba(190, 170, 255, .22); }
+  50% { box-shadow: 0 0 34px rgba(124, 82, 255, .72), 0 0 74px rgba(70, 0, 255, .28), inset 0 0 32px rgba(96, 62, 230, .5), inset 0 0 10px rgba(190, 170, 255, .36); }
 }
 @keyframes galaxyBreatheRed {
-  0%, 100% { box-shadow: 0 0 26px rgba(255, 59, 92, .5), 0 0 56px rgba(255, 0, 60, .16), inset 0 0 24px rgba(255, 59, 92, .28), inset 0 0 8px rgba(255, 170, 190, .2); }
-  50% { box-shadow: 0 0 42px rgba(255, 59, 92, .75), 0 0 84px rgba(255, 0, 60, .28), inset 0 0 34px rgba(255, 59, 92, .44), inset 0 0 10px rgba(255, 170, 190, .32); }
+  0%, 100% { box-shadow: 0 0 24px rgba(255, 59, 92, .52), 0 0 54px rgba(255, 0, 60, .17), inset 0 0 24px rgba(255, 59, 92, .32), inset 0 0 8px rgba(255, 176, 195, .22); }
+  50% { box-shadow: 0 0 40px rgba(255, 59, 92, .78), 0 0 82px rgba(255, 0, 60, .3), inset 0 0 34px rgba(255, 59, 92, .48), inset 0 0 10px rgba(255, 176, 195, .34); }
 }
-@keyframes twinkle { from { opacity: .5; } to { opacity: 1; } }
 @keyframes shoot {
   0%, 70% { left: -26%; top: 18%; opacity: 0; }
   74% { opacity: 1; }
-  86% { left: 114%; top: 64%; opacity: 0; }
-  100% { left: 114%; top: 64%; opacity: 0; }
+  86%, 100% { left: 114%; top: 64%; opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .power-btn.galaxy .g-swirl, .power-btn.galaxy .g-orbit, .power-btn.galaxy .g-shoot, .power-btn.galaxy::before { animation: none !important; }
+  .power-btn.galaxy .g-orbit, .power-btn.galaxy .g-shoot { animation: none !important; }
 }

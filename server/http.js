@@ -52,7 +52,7 @@ class WebServer {
 
   sse(req, res) {
     res.writeHead(200, {
-      'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive',
+      'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
     });
     res.write('retry: 3000\n\n');
@@ -141,7 +141,7 @@ class WebServer {
     fs.readFile(file, (err, data) => {
       if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('404 — not found'); return; }
       const ext = path.extname(file).toLowerCase();
-      res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+      res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': 'no-store' });
       res.end(data);
     });
   }
