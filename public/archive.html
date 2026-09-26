@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archive — MEXC AI Fusion | BadalWorld</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%2304060f' stroke='%2300e5ff'/%3E%3Cpath d='M17 5 L9 18 h5 l-2 9 9 -14 h-5 z' fill='%2300e5ff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css?v=2.4">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="logo">
+      <div class="bolt">⚡</div>
+      <div>
+        <h1>MEXC AI FUSION</h1>
+        <small>COMPOUNDING MASTER · BY BADALWORLD</small>
+      </div>
+    </div>
+    <nav class="tabs">
+      <a href="/">Dashboard</a>
+      <a href="/marketscan">Market Scan</a>
+      <a href="/archive" class="active">Archive</a>
+    </nav>
+    <div class="header-right">
+      <span class="live-badge stopped" id="liveBadge">○ STANDBY</span>
+      <span class="chip" id="pingChip"><span class="lbl">PING</span>…</span>
+      <span class="chip" id="ipChip" title="Click to copy your IP"><span class="lbl">IP</span>…</span>
+      <button class="iconbtn" id="voiceBtn" title="Toggle TradeMaster voice">🔊</button>
+    </div>
+  </header>
+
+  <!-- archive stats -->
+  <div class="stat-grid">
+    <div class="card"><div class="card-top"><span class="stat-title">📒 Total Trades</span><span class="stat-ico">🗂️</span></div><div class="stat-main" id="arTotal">—</div><div class="stat-sub" id="arTotalSub">all completed positions</div></div>
+    <div class="card"><div class="card-top"><span class="stat-title">🏆 Win Rate</span><span class="stat-ico">📈</span></div><div class="stat-main" id="arWin">—</div><div class="stat-sub" id="arWinSub">—</div></div>
+    <div class="card"><div class="card-top"><span class="stat-title">💵 Total PnL</span><span class="stat-ico">💎</span></div><div class="stat-main" id="arPnl">—</div><div class="stat-sub" id="arPnlSub">realized, all seasons</div></div>
+    <div class="card"><div class="card-top"><span class="stat-title">🚀 Best / Worst</span><span class="stat-ico">🎯</span></div><div class="stat-main" id="arBest" style="font-size:1.1rem">—</div><div class="stat-sub" id="arWorst">—</div></div>
+  </div>
+
+  <!-- session archive -->
+  <div class="section">
+    <div class="section-head"><h2>🗄️ Season Archive</h2><div class="grow"></div><span class="mini-note">each season's profit journey as a sparkline</span></div>
+    <div class="sess-grid" id="sessGrid">
+      <div class="card small-dim" style="padding:16px">No seasons archived yet — start & stop the engine to archive a season.</div>
+    </div>
+  </div>
+
+  <!-- all trades -->
+  <div class="section">
+    <div class="section-head">
+      <h2>📜 All Completed Positions</h2>
+      <div class="grow"></div>
+      <select id="filterSide" class="chip" style="cursor:pointer">
+        <option value="">ALL SIDES</option><option value="LONG">LONG</option><option value="SHORT">SHORT</option>
+      </select>
+      <select id="filterExit" class="chip" style="cursor:pointer">
+        <option value="">ALL EXITS</option><option value="TP">TP</option><option value="TP1">TP1</option><option value="SL">SL</option>
+        <option value="TRAIL">TRAIL</option><option value="ENGINE">ENGINE</option><option value="MANUAL">MANUAL</option>
+      </select>
+      <span class="chip" id="shownCount">0 shown</span>
+    </div>
+    <div class="tblwrap">
+      <table class="tbl" style="min-width:1080px">
+        <thead>
+          <tr>
+            <th>#</th><th>Season</th><th>Pair</th><th>Side</th><th>Strategy</th><th>Margin</th><th>Lev</th>
+            <th>Entry</th><th>Exit</th><th>ROI</th><th>PnL</th><th>AI</th><th>Exit Reason</th><th>Held</th><th>Closed</th>
+          </tr>
+        </thead>
+        <tbody id="archBody">
+          <tr><td colspan="15" class="small-dim" style="text-align:center;padding:26px">Loading archive…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+      <button class="btn xs" id="prevPage">← PREV</button>
+      <span class="chip" id="pageInfo">—</span>
+      <button class="btn xs" id="nextPage">NEXT →</button>
+    </div>
+  </div>
+
+  <footer class="credit">
+    <div class="brand">⚡ MEXC AI FUSION — DEVELOPMENT BY BADALWORLD</div>
+    <div style="margin-top:6px">Contact Us — <a href="https://t.me/anonymousvai" target="_blank" rel="noopener">t.me/anonymousvai</a></div>
+  </footer>
+</div>
+
+<div id="toasts"></div>
+<script src="/js/common.js?v=2.4"></script>
+<script src="/js/robot.js?v=2.4"></script>
+<script src="/js/bgfx.js?v=2.4"></script>
+<script src="/js/archive.js?v=2.4"></script>
+</body>
+</html>

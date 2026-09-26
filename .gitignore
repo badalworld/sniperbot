@@ -1,0 +1,5 @@
+# runtime data (api keys, trades, sessions) — never commit
+data/
+*.log
+node_modules/
+.DS_Store

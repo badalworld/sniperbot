@@ -1,0 +1,16 @@
+{
+  "name": "mexc-ai-fusion",
+  "version": "2.0.0",
+  "description": "MEXC AI Fusion — AI Futures auto-trading bot & dashboard (OBV x EMA50 compounding + 3M EMA9/21 scalping). Development by BadalWorld.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/test.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "author": "BadalWorld"
+}

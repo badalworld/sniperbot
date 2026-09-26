@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEXC AI Fusion — Compounding Master | BadalWorld</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%2304060f' stroke='%2300e5ff'/%3E%3Cpath d='M17 5 L9 18 h5 l-2 9 9 -14 h-5 z' fill='%2300e5ff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css?v=2.4">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="logo">
+      <div class="bolt">⚡</div>
+      <div>
+        <h1>MEXC AI FUSION</h1>
+        <small>COMPOUNDING MASTER · BY BADALWORLD</small>
+      </div>
+    </div>
+    <nav class="tabs">
+      <a href="/" class="active">Dashboard</a>
+      <a href="/marketscan">Market Scan</a>
+      <a href="/archive">Archive</a>
+    </nav>
+    <div class="header-right">
+      <span class="chip ver" title="AI Core version">◈ AI CORE v2.1</span>
+      <span class="live-badge stopped" id="liveBadge">○ STANDBY</span>
+      <span class="chip" id="pingChip"><span class="lbl">PING</span>…</span>
+      <span class="chip" id="ipChip" title="Click to copy your IP"><span class="lbl">IP</span>…</span>
+      <button class="iconbtn" id="voiceBtn" title="Toggle TradeMaster voice">🔊</button>
+      <button class="iconbtn" id="gearBtn" title="Bot settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- live market ticker tape -->
+  <div class="tape" id="tape"><div class="tape-track" id="tapeTrack"><span class="tape-item">📡 CONNECTING TO MEXC MARKET FEED…</span></div></div>
+
+  <!-- power + status hero -->
+  <div class="section" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <div class="power-wrap">
+      <button class="power-btn galaxy" id="powerBtn" title="Start / Stop the trading engine">
+        <span class="g-clip"><span class="g-shoot"></span></span>
+        <span class="g-orbit"><i></i></span>
+        <span class="pwr">⏻</span>
+        <span class="plabel" id="powerLabel">START</span>
+      </button>
+      <div class="power-hint" id="powerHint">Engine stopped — press to configure & start</div>
+    </div>
+    <div class="card" style="flex:1;min-width:260px;padding:12px 16px" id="statusCard">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <div class="stat-title">ENGINE STATUS</div>
+          <div class="stat-main" id="engineStatus" style="font-size:1.05rem">STANDBY</div>
+          <div class="stat-sub" id="modeLine">AI core booting…</div>
+        </div>
+        <div style="text-align:right">
+          <div class="stat-title">COMPOUNDING MARGIN</div>
+          <div class="stat-main neu" style="font-size:1.05rem" id="baseMargin">—</div>
+          <div class="stat-sub" id="lastPnlSub">last trade: —</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- stat cards (equal size) -->
+  <div class="stat-grid">
+    <div class="card">
+      <div class="card-top"><span class="stat-title">💰 Futures Balance</span><span class="stat-ico">💎</span></div>
+      <div class="stat-main" id="balanceMain">—</div>
+      <div class="stat-sub" id="balanceSub">connecting…</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="stat-title">🎯 Season Target</span><span class="stat-ico">🏁</span></div>
+      <div class="stat-main" id="seasonMain">—</div>
+      <div class="stat-sub" id="seasonSub">start a season to begin</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="stat-title">🏆 Win Rate</span><span class="stat-ico">📈</span></div>
+      <div class="ringwrap">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="#0d1b33" stroke-width="7"/>
+          <circle id="winRing" cx="32" cy="32" r="26" fill="none" stroke="#00ff9d" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4"
+                  transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .8s;filter:drop-shadow(0 0 6px #00ff9d)"/>
+        </svg>
+        <div>
+          <div class="stat-main" id="winMain" style="font-size:1.3rem">—</div>
+          <div class="stat-sub" id="winSub">no trades yet</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="stat-title">🤖 Executed Trades</span><span class="stat-ico">⚡</span></div>
+      <div class="stat-main" id="execMain">0</div>
+      <div class="stat-sub" id="execSub">this season · all time</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="stat-title">📊 Today P&L</span><span class="stat-ico">🛡️</span></div>
+      <div class="stat-main" id="todayMain">—</div>
+      <div class="stat-sub" id="todaySub">risk guards armed</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="stat-title">📡 AI Scanner</span><span class="stat-ico">🛰️</span></div>
+      <div class="stat-main" id="scanMain">—</div>
+      <div class="stat-sub" id="scanSub">warming up…</div>
+    </div>
+  </div>
+
+  <!-- compounding liquid -->
+  <div class="section">
+    <div class="section-head">
+      <h2>🧪 Compounding Reactor</h2>
+      <div class="grow"></div>
+      <span class="mini-note" id="reactorNote">liquid flows green on profit · red on loss · center = 0</span>
+    </div>
+    <div class="card liquid-card">
+      <div class="liquid-head">
+        <div>
+          <div class="stat-title">SESSION EQUITY WAVE</div>
+          <div class="liquid-value" id="liqValue">0.00%</div>
+        </div>
+        <div style="text-align:right">
+          <div class="stat-title">REALIZED THIS SEASON</div>
+          <div class="liquid-value neu" id="liqPnl" style="font-size:1.05rem">$0.00</div>
+        </div>
+      </div>
+      <canvas id="eqChart"></canvas>
+      <div class="liquid-track">
+        <div class="liquid-zero"></div>
+        <div class="liquid-fill" id="liqFill"></div>
+        <div class="liquid-wave" id="liqWave"></div>
+      </div>
+      <div class="liquid-ticks"><span>−100% WIPEOUT</span><span class="mid">0</span><span>+100% DOUBLE →</span></div>
+      <div class="million-path">
+        <div class="mp-head">
+          <span>🏆 MILLIONAIRE PATH — <b id="millionTarget" style="color:#eaf6ff">$1,000,000</b></span>
+          <span id="millionPct">0% reached · — to go</span>
+        </div>
+        <div class="million-bar"><div class="fill" id="millionFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- active positions -->
+  <div class="section">
+    <div class="section-head">
+      <h2>🚀 Active Positions</h2>
+      <span class="chip" id="posCount">0 / 5 slots</span>
+      <div class="grow"></div>
+      <a class="linklike" id="refreshPos">refresh now</a>
+      <button class="btn danger xs" id="closeAllBtn">Close All</button>
+    </div>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>#</th><th>Pair</th><th>Side</th><th>AI Score</th><th>Margin</th><th>Lev</th>
+            <th>Entry</th><th>Mark</th><th>ROI</th><th>PnL</th>
+            <th>TP Price</th><th>SL Price</th><th>Trailing Stop</th><th>Age</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="posBody">
+          <tr><td colspan="15" class="small-dim" style="text-align:center;padding:22px">No open positions — the engine will fire when a 70+ AI setup confirms at candle close.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- completed + engine log -->
+  <div class="stat-grid duo-grid">
+    <div class="card" style="padding:14px 16px">
+      <div class="card-top">
+        <span class="stat-title">✅ Completed Trades</span>
+        <a class="linklike" href="/archive">View All Archive →</a>
+      </div>
+      <div class="tblwrap" style="border:none;background:transparent">
+        <table class="tbl" style="min-width:540px">
+          <thead><tr><th>Pair</th><th>Side</th><th>ROI</th><th>PnL</th><th>Exit</th><th>AI</th><th>When</th></tr></thead>
+          <tbody id="recentBody"><tr><td colspan="7" class="small-dim" style="text-align:center;padding:16px">No completed trades yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div class="card-top"><span class="stat-title">🗣️ TradeMaster Feed</span><span class="mini-note" id="voiceState">voice on</span></div>
+      <div class="feed" id="feedEl"><div class="fitem"><span class="fts">--:--:--</span><span>Waiting for the engine…</span></div></div>
+    </div>
+  </div>
+
+  <!-- engine decision log -->
+  <div class="section">
+    <div class="section-head">
+      <h2>🧠 AI Decision Log</h2>
+      <div class="grow"></div>
+      <span class="mini-note">only 70+ score · 7/10 confirmations pass the gate</span>
+    </div>
+    <div class="card" style="padding:12px 14px;max-height:260px;overflow-y:auto">
+      <div id="scanLogEl" style="display:flex;flex-direction:column;gap:6px">
+        <span class="small-dim">Scanner is analyzing markets…</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="credit">
+    <div class="brand">⚡ MEXC AI FUSION — DEVELOPMENT BY BADALWORLD</div>
+    <div style="margin-top:6px">Contact Us — <a href="https://t.me/anonymousvai" target="_blank" rel="noopener">t.me/anonymousvai</a></div>
+    <div class="disc">Trade responsibly. Futures trading involves substantial risk of loss. This bot compounds aggressively by design — always test with funds you can afford to lose.</div>
+  </footer>
+</div>
+
+<!-- start / settings modal -->
+<div class="modal-back" id="modalBack">
+  <div class="modal">
+    <h3 id="modalTitle">LAUNCH CONFIGURATION</h3>
+    <div class="sub" id="modalSub">Enter your MEXC Futures API keys — everything is stored locally on your machine only.</div>
+    <div class="ip-box" style="margin-bottom:14px;padding:10px 14px;border:1px dashed var(--line2);border-radius:10px">
+      <span class="stat-title" style="margin:0">YOUR IP</span>
+      <span class="ip-val" id="modalIp">detecting…</span>
+      <button class="btn xs" id="modalIpCopy">COPY</button>
+      <span class="mini-note" id="modalLan"></span>
+    </div>
+
+    <div id="keysSection">
+      <h4>🔑 MEXC Futures API Connection</h4>
+      <div class="form-grid">
+        <div class="field full">
+          <label>API Key (Access Key)</label>
+          <input type="text" id="fApiKey" placeholder="Paste your MEXC API access key" autocomplete="off">
+        </div>
+        <div class="field full">
+          <label>Secret Key</label>
+          <input type="password" id="fSecretKey" placeholder="Paste your MEXC secret key" autocomplete="off">
+          <div class="hint">Create at MEXC → API Management. Enable <b>Futures trading</b> permission. Never share these keys.</div>
+        </div>
+      </div>
+    </div>
+
+    <h4>⚙️ Strategy & Risk Configuration</h4>
+    <div class="form-grid" id="cfgGrid"></div>
+
+    <div class="modal-actions">
+      <button class="btn" id="modalSave">SAVE SETTINGS</button>
+      <div class="grow"></div>
+      <label class="mini-note" style="display:flex;align-items:center;gap:6px;cursor:pointer" id="closeOnStopWrap">
+        <input type="checkbox" id="closeOnStop" style="width:auto"> also close open positions
+      </label>
+      <button class="btn success" id="modalStartStop">SAVE & START</button>
+      <button class="btn danger" id="modalCancel">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- cinematic boot overlay -->
+<div id="boot">
+  <div class="boot-inner">
+    <div class="boot-logo">⚡</div>
+    <div class="boot-title">MEXC AI FUSION</div>
+    <div class="boot-sub">COMPOUNDING MASTER · BY BADALWORLD</div>
+    <pre class="boot-lines" id="bootLines"></pre>
+    <div class="boot-bar"><i id="bootFill"></i></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script src="/js/common.js?v=2.4"></script>
+<script src="/js/bgfx.js?v=2.4"></script>
+<script src="/js/robot.js?v=2.4"></script>
+<script src="/js/boot.js?v=2.4"></script>
+<script src="/js/app.js?v=2.4"></script>
+</body>
+</html>
