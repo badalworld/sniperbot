@@ -37,6 +37,7 @@ function todayKey(ts) { const d = new Date(ts || Date.now()); return d.getFullYe
 
 class Engine {
   constructor(scanner) {
+    this.bootAt = Date.now();
     this.client = new MexcClient({});
     this.scanner = scanner;
     this.settings = Object.assign({}, DEFAULTS, store.load('settings', {}));
@@ -784,6 +785,8 @@ class Engine {
     try { d = this.dailyPnlSeries(); } catch (e) { d = []; }
     return {
       serverTime: now,
+      version: '2.1',
+      uptimeSec: Math.floor((now - (this.bootAt || now)) / 1000),
       running: this.running,
       halted: this.halted, haltReason: this.haltReason,
       cooldownUntil: this.cooldownUntil, btcBlockUntil: this.btcBlockUntil, btcMove: round(this.btcMove, 2),

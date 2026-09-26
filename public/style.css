@@ -449,3 +449,123 @@ footer.credit .disc { font-size: .68rem; color: var(--dim); margin-top: 8px; fon
 @media (max-width: 900px) {
   .stat-grid.duo-grid { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   UI UPGRADE v2.1 — cinematic layer
+   ═══════════════════════════════════════════════════════════════ */
+.wrap { position: relative; z-index: 1; }
+#bgfx { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .55; }
+
+/* ---------- boot sequence ---------- */
+#boot {
+  position: fixed; inset: 0; z-index: 1000;
+  background: radial-gradient(900px 520px at 50% 32%, #08152a, #02040a 78%);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .65s ease, visibility .65s;
+}
+#boot.done { opacity: 0; visibility: hidden; pointer-events: none; }
+.boot-inner { width: min(470px, 92vw); text-align: center; }
+.boot-logo { font-size: 3.1rem; filter: drop-shadow(0 0 20px var(--cyan)); animation: pulseGlow 1.5s infinite; }
+.boot-title {
+  font-family: var(--font-d); font-weight: 900; font-size: 1.5rem; letter-spacing: 7px; margin-top: 10px;
+  background: linear-gradient(90deg, #00e5ff, #7df9ff 45%, #ff2bd6);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.boot-sub { font-family: var(--font-d); font-size: .58rem; letter-spacing: 4.5px; color: var(--dim); margin: 8px 0 20px; }
+.boot-lines {
+  font-family: var(--font-m); font-size: .72rem; color: var(--green); text-align: left;
+  min-height: 100px; text-shadow: 0 0 8px rgba(0, 255, 157, .45); line-height: 1.75;
+}
+.boot-bar { height: 4px; border-radius: 4px; background: #0a1224; border: 1px solid var(--line); overflow: hidden; margin-top: 14px; }
+.boot-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #00384a, var(--cyan)); box-shadow: 0 0 12px var(--cyan); transition: width .3s; }
+
+/* ---------- ticker tape ---------- */
+.tape {
+  overflow: hidden; border: 1px solid var(--line); border-radius: 10px;
+  background: rgba(6, 10, 24, .82); margin-bottom: 14px; position: relative; z-index: 1;
+}
+.tape-track { display: inline-flex; gap: 30px; white-space: nowrap; padding: 8px 0; animation: tapeMove 38s linear infinite; will-change: transform; }
+.tape:hover .tape-track { animation-play-state: paused; }
+.tape-item { font-family: var(--font-m); font-size: .76rem; display: inline-flex; gap: 7px; align-items: center; color: var(--dim); }
+.tape-item b { color: #eaf6ff; font-weight: 600; letter-spacing: .5px; }
+@keyframes tapeMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ---------- HUD corners + card life ---------- */
+.stat-grid .card { transition: transform .25s, border-color .25s, box-shadow .25s, opacity .4s; animation: cardIn .55s both; }
+.stat-grid .card:nth-child(2) { animation-delay: .06s; }
+.stat-grid .card:nth-child(3) { animation-delay: .12s; }
+.stat-grid .card:nth-child(4) { animation-delay: .18s; }
+.stat-grid .card:nth-child(5) { animation-delay: .24s; }
+.stat-grid .card:nth-child(6) { animation-delay: .30s; }
+.stat-grid .card:hover { transform: translateY(-3px); border-color: var(--line2); box-shadow: 0 10px 28px rgba(0, 229, 255, .13), inset 0 0 26px rgba(0, 229, 255, .05); }
+.stat-grid .card::after {
+  content: ''; position: absolute; inset: 5px; pointer-events: none; border-radius: 10px; opacity: .5;
+  background:
+    linear-gradient(var(--cyan), var(--cyan)) left top / 14px 2px,
+    linear-gradient(var(--cyan), var(--cyan)) left top / 2px 14px,
+    linear-gradient(var(--cyan), var(--cyan)) right top / 14px 2px,
+    linear-gradient(var(--cyan), var(--cyan)) right top / 2px 14px,
+    linear-gradient(var(--cyan), var(--cyan)) left bottom / 14px 2px,
+    linear-gradient(var(--cyan), var(--cyan)) left bottom / 2px 14px,
+    linear-gradient(var(--cyan), var(--cyan)) right bottom / 14px 2px,
+    linear-gradient(var(--cyan), var(--cyan)) right bottom / 2px 14px;
+  background-repeat: no-repeat;
+}
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* ---------- section head accent ---------- */
+.section-head h2 { padding-left: 12px; position: relative; }
+.section-head h2::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 4px; height: 72%; border-radius: 3px;
+  background: linear-gradient(180deg, var(--cyan), var(--mag));
+  box-shadow: 0 0 10px var(--cyan);
+}
+
+/* ---------- header sheen ---------- */
+header.topbar { overflow: hidden; }
+header.topbar::after {
+  content: ''; position: absolute; top: 0; left: -60%; width: 38%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(0, 229, 255, .09), transparent);
+  transform: skewX(-20deg); animation: sheen 7s ease-in-out infinite; pointer-events: none;
+}
+@keyframes sheen { 0%, 55% { left: -60%; } 90%, 100% { left: 130%; } }
+
+/* ---------- ROI progress bars (positions) ---------- */
+.roibar { height: 4px; border-radius: 3px; background: #0a1224; margin-top: 5px; overflow: hidden; border: 1px solid rgba(0, 229, 255, .12); }
+.roibar i { display: block; height: 100%; border-radius: 3px; transition: width .6s; }
+.roibar.up i { background: linear-gradient(90deg, #005c3a, var(--green)); box-shadow: 0 0 8px rgba(0, 255, 157, .55); }
+.roibar.down i { background: linear-gradient(90deg, #5c0020, var(--red)); box-shadow: 0 0 8px rgba(255, 59, 92, .55); }
+
+/* ---------- scanner: price flash + sparkline ---------- */
+tr.flash-up td { animation: flashUp 1.1s ease; }
+tr.flash-down td { animation: flashDown 1.1s ease; }
+@keyframes flashUp { 0% { background: rgba(0, 255, 157, .17); } 100% { background: transparent; } }
+@keyframes flashDown { 0% { background: rgba(255, 59, 92, .17); } 100% { background: transparent; } }
+canvas.mspark { display: block; }
+
+/* ---------- equity chart ---------- */
+#eqChart { width: 100%; height: 92px; display: block; margin-bottom: 14px; }
+
+/* ---------- robot light sweep ---------- */
+#robot .botbody::after {
+  content: ''; position: absolute; left: -35%; top: 0; width: 26%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(125, 249, 255, .30), transparent);
+  transform: skewX(-18deg); animation: sheen 4.6s ease-in-out infinite; pointer-events: none;
+}
+
+/* ---------- misc polish ---------- */
+table.tbl th { box-shadow: inset 0 -2px 0 -1px rgba(0, 229, 255, .35); }
+.chip.ver { color: var(--mag); border-color: rgba(255, 43, 214, .4); }
+.btn { position: relative; overflow: hidden; }
+.btn::after {
+  content: ''; position: absolute; inset: 0; left: -70%; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .12), transparent);
+  transform: skewX(-20deg); transition: left .5s ease;
+}
+.btn:hover::after { left: 130%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tape-track, .boot-logo, #robot, .radar .sweep, header.topbar::after, #robot .botbody::after { animation: none !important; }
+  .stat-grid .card { animation: none; }
+}

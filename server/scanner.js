@@ -118,6 +118,7 @@ class Scanner {
       contractSize: +d.contractSize || 0,
       maxLeverage: +d.maxLeverage || 20,
       mcap: this.mcapCache.get((d.baseCoin || '').toUpperCase())?.mcap || null,
+      spark: closed15.slice(-24).map((c) => +c.close.toFixed(6)), // 15m trend sparkline (last 6h)
       scannedAt: Date.now(),
     };
     const existing = this.bySymb.get(symbol);

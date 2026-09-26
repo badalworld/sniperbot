@@ -6,6 +6,91 @@
   let lastEventTs = 0;
   let modalMode = 'start';
 
+  /* ---------------- UI v2.1 helpers ---------------- */
+  const prevNums = new Map();
+  function countUp(id, val, fmt) {
+    const el = $(id);
+    if (el && val == null) { el.textContent = '—'; return; }
+    if (!el) return;
+    const prev = prevNums.get(id);
+    prevNums.set(id, val);
+    if (prev == null || prev === val || !isFinite(val)) { el.textContent = fmt(val); return; }
+    const t0 = performance.now(), dur = 650;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt(prev + (val - prev) * e);
+      if (k < 1 && prevNums.get(id) === val) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  const fmtUp = (s) => {
+    s = Math.floor(s || 0);
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    return (h ? h + 'h ' : '') + m + 'm ' + x + 's';
+  };
+
+  /* session PnL curve (cumulative realized pnl per trade) */
+  function drawEq(series) {
+    const cv = $('eqChart');
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = cv.width = Math.max(300, cv.clientWidth) * dpr;
+    const H = cv.height = 92 * dpr;
+    ctx.clearRect(0, 0, W, H);
+    const pad = 12 * dpr;
+    let min = 0, max = 0;
+    for (const p of (series || [])) { min = Math.min(min, p.v); max = Math.max(max, p.v); }
+    if (max === min) max = min + 1;
+    const X = (i) => (series && series.length > 1) ? pad + i / (series.length - 1) * (W - 2 * pad) : W / 2;
+    const Y = (v) => H - pad - ((v - min) / (max - min)) * (H - 2 * pad);
+    const y0 = Y(0);
+    ctx.strokeStyle = 'rgba(140,170,210,.28)';
+    ctx.setLineDash([4 * dpr, 5 * dpr]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, y0); ctx.lineTo(W - pad, y0); ctx.stroke();
+    ctx.setLineDash([]);
+    if (!series || !series.length) {
+      ctx.fillStyle = 'rgba(107,126,168,.85)';
+      ctx.font = (11.5 * dpr) + 'px Rajdhani, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('waiting for the first trade of the season…', W / 2, H / 2 + 4 * dpr);
+      return;
+    }
+    const lastV = series[series.length - 1].v;
+    const col = lastV >= 0 ? '#00ff9d' : '#ff3b5c';
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, lastV >= 0 ? 'rgba(0,255,157,.30)' : 'rgba(255,59,92,.30)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.moveTo(X(0), y0);
+    series.forEach((p, i) => ctx.lineTo(X(i), Y(p.v)));
+    ctx.lineTo(X(series.length - 1), y0); ctx.closePath();
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath();
+    series.forEach((p, i) => (i ? ctx.lineTo(X(i), Y(p.v)) : ctx.moveTo(X(i), Y(p.v))));
+    ctx.strokeStyle = col; ctx.lineWidth = 2 * dpr;
+    ctx.shadowColor = col; ctx.shadowBlur = 10 * dpr;
+    ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(X(series.length - 1), Y(lastV), 3.2 * dpr, 0, 7);
+    ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 12 * dpr;
+    ctx.fill(); ctx.shadowBlur = 0;
+  }
+
+  /* ticker tape (top 14 pairs by 24h volume, rebuilt max every 12s) */
+  let lastTape = 0;
+  function renderTape(s) {
+    const track = $('tapeTrack');
+    if (!track) return;
+    const now = Date.now();
+    if (now - lastTape < 12000 && track.children.length > 1) return;
+    lastTape = now;
+    const rows = ((s.scanner && s.scanner.rows) || []).slice().sort((a, b) => b.vol24h - a.vol24h).slice(0, 14);
+    if (!rows.length) return;
+    const item = (r) => `<span class="tape-item"><b>${r.symbol}</b> ${AI2.fmtPrice(r.price)} <span class="${AI2.clsPnl(r.change24h)}">${AI2.fmtPct(r.change24h)}</span></span>`;
+    track.innerHTML = rows.map(item).join('') + rows.map(item).join('');
+  }
+
   /* ---------------- config fields ---------------- */
   const CFG = [
     { k: 'strategy', label: 'Strategy Mode', type: 'select', opts: [
@@ -169,6 +254,11 @@
     eng.textContent = st;
     eng.className = 'stat-main ' + stCls;
     eng.style.fontSize = '1.05rem';
+    const modeLine = $('modeLine');
+    if (modeLine) {
+      const mode = s.settings.strategy === 'scalp_3m' ? '3M SCALPING' : 'OBV × EMA50';
+      modeLine.textContent = `MODE ${mode} · GATE ≥ ${s.settings.minAiScore} · UP ${fmtUp(s.uptimeSec)}`;
+    }
     if (s.cooldownUntil > s.serverTime) $('lastPnlSub').innerHTML = `cooldown ${Math.ceil((s.cooldownUntil - s.serverTime) / 1000)}s (anti-revenge)`;
     else $('lastPnlSub').textContent = 'last trade: ' + (s.lastPnl ? AI2.fmtUsd(s.lastPnl) : '—');
     $('baseMargin').textContent = AI2.fmtUsd(s.baseMargin);
@@ -208,11 +298,11 @@
     $('winRing').style.strokeDashoffset = C - C * (w.winRate / 100);
 
     // executed
-    $('execMain').textContent = w.executedSeason;
+    countUp('execMain', w.executedSeason, (v) => String(Math.round(v)));
     $('execSub').innerHTML = `this season · <b>${w.executedTotal}</b> all time`;
 
     // today
-    $('todayMain').textContent = AI2.fmtUsd(w.todayPnl || 0);
+    countUp('todayMain', w.todayPnl || 0, (v) => AI2.fmtUsd(v));
     $('todayMain').className = 'stat-main ' + AI2.clsPnl(w.todayPnl || 0);
     $('todaySub').innerHTML = w.todayHalted
       ? '<span class="neg">⛔ halted — daily drawdown limit</span>'
@@ -236,7 +326,7 @@
       fill.style.width = half + '%';
       $('liqValue').textContent = (clamped >= 0 ? '+' : '') + clamped.toFixed(2) + '%';
       $('liqValue').className = 'liquid-value ' + AI2.clsPnl(clamped);
-      $('liqPnl').textContent = AI2.fmtUsd(s.season.realizedPnl || 0);
+      countUp('liqPnl', s.season.realizedPnl || 0, (v) => AI2.fmtUsd(v));
       $('liqPnl').className = 'liquid-value ' + AI2.clsPnl(s.season.realizedPnl || 0);
       $('liqWave').style.opacity = clamped === 0 ? 0.15 : 0.5;
     } else {
@@ -244,6 +334,10 @@
       $('liqValue').textContent = '0.00%';
       $('liqPnl').textContent = '$0.00';
     }
+
+    // session pnl curve + ticker tape
+    drawEq(s.dailySeries);
+    renderTape(s);
 
     // positions
     renderPositions(s);
