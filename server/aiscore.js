@@ -61,21 +61,42 @@ function evaluate(bundle) {
   const stBull = st === 'HH_HL' ? 15 : st === 'MIXED' ? 4 : 0;
   const stBear = st === 'LH_LL' ? 15 : st === 'MIXED' ? 4 : 0;
 
-  /* ---- 4. Multi-timeframe (15): 3m, 15m, 1h, 4h alignment ---- */
+  /* ---- 4. Multi-timeframe (15): 3m, 15m, 1h, 4h alignment ----
+   * AUDIT FIX: timeframes with missing data are SKIPPED (neutral) — they used to be
+   * counted as bearish, which biased every symbol without long history against LONGs. */
   const c3 = safeTail(k3m, 60).map((c) => c.close);
   const e9_3 = ind.ema(c3, 9), e21_3 = ind.ema(c3, 21);
-  const e9_15 = ind.ema(safeTail(k15m, 60).map((c) => c.close), 9), e21_15 = ind.ema(safeTail(k15m, 60).map((c) => c.close), 21);
+  let bullCount = 0, bearCount = 0, tfCounted = 0;
+  if (ind.last(e9_3) != null && ind.last(e21_3) != null) {
+    if (ind.last(e9_3) > ind.last(e21_3)) bullCount++; else bearCount++;
+    tfCounted++;
+  }
+  const c15tf = safeTail(k15m, 60).map((c) => c.close);
+  const e9_15 = ind.ema(c15tf, 9), e21_15 = ind.ema(c15tf, 21);
+  if (ind.last(e9_15) != null && ind.last(e21_15) != null) {
+    if (ind.last(e9_15) > ind.last(e21_15)) bullCount++; else bearCount++;
+    tfCounted++;
+  }
   const c1h = k1h && k1h.length >= 55 ? safeTail(k1h, 60).map((c) => c.close) : null;
-  const e50_1h = c1h ? ind.ema(c1h, 50) : null;
+  if (c1h) {
+    const e50_1h = ind.ema(c1h, 50);
+    if (ind.last(e50_1h) != null) {
+      if (ind.last(c1h) > ind.last(e50_1h)) bullCount++; else bearCount++;
+      tfCounted++;
+    }
+  }
   const c4h = k4h && k4h.length >= 55 ? safeTail(k4h, 60).map((c) => c.close) : null;
-  const e50_4h = c4h ? ind.ema(c4h, 50) : null;
-  let bullCount = 0, bearCount = 0;
-  if (ind.last(e9_3) > ind.last(e21_3)) bullCount++; else bearCount++;
-  if (ind.last(e9_15) > ind.last(e21_15)) bullCount++; else bearCount++;
-  if (e50_1h && ind.last(c1h) > ind.last(e50_1h)) bullCount++; else bearCount++;
-  if (e50_4h && ind.last(c4h) > ind.last(e50_4h)) bullCount++; else bearCount++;
-  const mtfBull = bullCount === 4 ? 15 : bullCount === 3 ? 11 : bullCount === 2 ? 7 : bullCount === 1 ? 3 : 0;
-  const mtfBear = bearCount === 4 ? 15 : bearCount === 3 ? 11 : bearCount === 2 ? 7 : bearCount === 1 ? 3 : 0;
+  if (c4h) {
+    const e50_4h = ind.ema(c4h, 50);
+    if (ind.last(e50_4h) != null) {
+      if (ind.last(c4h) > ind.last(e50_4h)) bullCount++; else bearCount++;
+      tfCounted++;
+    }
+  }
+  const rBull = tfCounted ? bullCount / tfCounted : 0;
+  const rBear = tfCounted ? bearCount / tfCounted : 0;
+  const mtfBull = rBull === 1 ? 15 : rBull >= 0.75 ? 11 : rBull >= 0.5 ? 7 : rBull >= 0.25 ? 3 : 0;
+  const mtfBear = rBear === 1 ? 15 : rBear >= 0.75 ? 11 : rBear >= 0.5 ? 7 : rBear >= 0.25 ? 3 : 0;
 
   /* ---- 5. RSI (10) on 3m ---- */
   const r14 = ind.rsi(c3, 14);
@@ -185,7 +206,6 @@ function srScore(k15m, px, notes) {
   const prev = k15m[k15m.length - 2];
   if (prev && prev.high > res && prev.close < res && lastC.close < res) notes.push('Fake breakout above resistance detected');
   if (prev && prev.low < sup && prev.close > sup && lastC.close > sup) notes.push('Fake breakdown below support detected');
-  if (brokeUp && !prev) return { bull: 10, bear: 0 };
   if (brokeUp) return { bull: 10, bear: 0 };
   if (brokeDown) return { bull: 0, bear: 10 };
   const nearSup = px <= sup * 1.012 && px >= sup * 0.995;

@@ -5,6 +5,7 @@
   let STATE = null;
   let lastEventTs = 0;
   let modalMode = 'start';
+  let lastHaltNotified = '';
 
   /* ---------------- UI v2.1 helpers ---------------- */
   const prevNums = new Map();
@@ -83,7 +84,7 @@
     const track = $('tapeTrack');
     if (!track) return;
     const now = Date.now();
-    if (now - lastTape < 12000 && track.children.length > 1) return;
+    if (now - lastTape < 30000 && track.children.length > 1) return;
     lastTape = now;
     const rows = ((s.scanner && s.scanner.rows) || []).slice().sort((a, b) => b.vol24h - a.vol24h).slice(0, 14);
     if (!rows.length) return;
@@ -324,7 +325,10 @@
     if (s.cooldownUntil > s.serverTime) $('lastPnlSub').innerHTML = `cooldown ${Math.ceil((s.cooldownUntil - s.serverTime) / 1000)}s (anti-revenge)`;
     else $('lastPnlSub').textContent = 'last trade: ' + (s.lastPnl ? AI2.fmtUsd(s.lastPnl) : '—');
     $('baseMargin').textContent = AI2.fmtUsd(s.baseMargin);
-    if (s.haltReason) AI2.toast('Risk halt: ' + s.haltReason, 'err');
+    if (s.haltReason && s.haltReason !== lastHaltNotified) {
+      lastHaltNotified = s.haltReason;
+      AI2.toast('Risk halt: ' + s.haltReason, 'err');
+    } else if (!s.haltReason) lastHaltNotified = '';
 
     // balance
     const b = s.balance;

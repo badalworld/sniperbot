@@ -154,11 +154,33 @@ function makeScanner(stub, ind) {
   engine.finalizeClose(pos4rec, 97, 'SL', 'sim -30% ROI');
   assert(engine.halted, 'risk halt engaged after 3 consecutive losses');
 
+  /* 4b. AUDIT FIX: untracked exchange positions get adopted (restart survival) */
+  stub.open.set('ADOPT_USDT', { positionId: 777, positionType: 2, state: 1, holdVol: 5, holdAvgPrice: 50, im: 1, leverage: 10 });
+  await engine.reconcile();
+  assert(engine.positions.has('ADOPT_USDT'), 'position adopted after appearing on exchange');
+  const adopted = engine.positions.get('ADOPT_USDT');
+  assert.strictEqual(adopted.adopted, true, 'adopted flag set');
+  assert.strictEqual(adopted.side, 'SHORT', 'side derived from positionType');
+  assert.strictEqual(adopted.entryPrice, 50, 'entry from exchange holdAvgPrice');
+  stub.open.delete('ADOPT_USDT');
+  await engine.reconcile();
+  assert(!engine.positions.has('ADOPT_USDT'), 'adopted position closes cleanly');
+
+  /* 5b. AUDIT FIX: stop(closePositions=true) records every closed trade */
+  const beforeStop = engine.completed.length;
+  await engine.openPosition('TEST_USDT', 'LONG', aiRes, { side: 'LONG', entryPrice: stub.price, reason: 'sim5', confluence: 8, initSl: stub.price * 0.97 });
+  assert(engine.positions.has('TEST_USDT'), 'fifth position open for stop test');
+  const stopRes = await engine.stop(true);
+  assert(stopRes.ok, 'stop ok');
+  assert.strictEqual(engine.completed.length, beforeStop + 1, 'stop(close) recorded the trade — got ' + engine.completed.length + ' vs ' + beforeStop);
+  assert(engine.sessions.length >= 1, 'season archived on stop');
+  assert(!engine.running, 'engine stopped');
+
   /* 6. dashboard snapshot integrity */
   const dash = engine.dashboard();
-  assert.strictEqual(dash.stats.executedTotal, 4);
+  assert.strictEqual(dash.stats.executedTotal, 6); // 4 pipeline + adopted close + stop close
   assert.strictEqual(dash.positions.length, 0);
-  assert(dash.completed.length >= 4);
+  assert(dash.completed.length >= 6);
   assert(dash.feed.some((f) => f.type === 'trade_win'), 'robot got win event');
   assert(dash.feed.some((f) => f.type === 'trade_loss'), 'robot got loss event');
 

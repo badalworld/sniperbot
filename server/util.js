@@ -72,7 +72,7 @@ class RateLimiter {
     this.tokens = this.burst; this.last = Date.now();
   }
   async take() {
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 2000; i++) {
       const now = Date.now();
       this.tokens = Math.min(this.burst, this.tokens + ((now - this.last) / 1000) * this.rate);
       this.last = now;

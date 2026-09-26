@@ -12,6 +12,7 @@
     renderStats();
     renderSessions();
     renderTable();
+    AI2.api('/api/state').then((s) => AI2.bindHeader(s)).catch(() => {}); // keep ping/IP chips live
   }
 
   function renderStats() {

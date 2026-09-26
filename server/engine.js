@@ -84,22 +84,46 @@ class Engine {
 
   /* ---------------- settings ---------------- */
   updateSettings(patch, opts) {
+    /* AUDIT FIX: every numeric setting is validated & clamped to a safe range
+     * (previously an empty input could inject 0 / NaN into the engine math). */
+    const NUM_RANGE = {
+      leverage: [1, 200], maxOpenTrades: [1, 20], startMargin: [0.5, 1e6],
+      minVolume24h: [1e5, 1e10], seasonTarget: [10, 1e12],
+      takeProfitRoi: [1, 500], stopLossRoi: [1, 500], trailTriggerRoi: [1, 500],
+      trailDistancePct: [0.05, 20], minAiScore: [0, 100], min15mMove: [0, 50],
+      scalpMinMove: [0, 50], volumeSpike: [1, 10], maxHoldMin: [3, 1440],
+      maxConsecutiveLosses: [1, 20], dailyDrawdownPct: [0.5, 100],
+      cooldownAfterLossSec: [0, 7200], btcFilterPct: [0.1, 20],
+    };
     const keys = Object.keys(DEFAULTS);
     for (const k of keys) {
       if (patch[k] === undefined) continue;
       let v = patch[k];
-      if (['leverage', 'maxOpenTrades', 'port'].includes(k)) v = parseInt(v, 10);
-      else if (['startMargin', 'minVolume24h', 'seasonTarget', 'takeProfitRoi', 'stopLossRoi', 'trailTriggerRoi', 'trailDistancePct', 'minAiScore', 'min15mMove', 'scalpMinMove', 'volumeSpike', 'maxHoldMin', 'maxConsecutiveLosses', 'dailyDrawdownPct', 'cooldownAfterLossSec', 'btcFilterPct'].includes(k)) v = Number(v);
-      else if (k === 'voice') v = Boolean(v);
+      if (NUM_RANGE[k]) {
+        if (v === '' || v === null) continue; // empty input = no change (audit fix)
+        const n = Number(v);
+        if (!isFinite(n)) continue; // ignore garbage input, keep current value
+        v = clamp(n, NUM_RANGE[k][0], NUM_RANGE[k][1]);
+      } else if (k === 'port') {
+        const n = parseInt(v, 10);
+        if (!isFinite(n)) continue;
+        v = clamp(n, 1, 65535);
+      } else if (k === 'voice') v = Boolean(v);
       else if (k === 'strategy') v = (v === 'obv_compound' ? 'obv_compound' : 'scalp_3m');
       if (k === 'apiKey' || k === 'secretKey') continue; // keys handled separately
       this.settings[k] = v;
     }
-    if (opts && opts.apiKey !== undefined && opts.secretKey !== undefined && !this.running) {
-      this.settings.apiKey = String(opts.apiKey || '').trim();
-      this.settings.secretKey = String(opts.secretKey || '').trim();
-      this.client.setKeys(this.settings.apiKey, this.settings.secretKey);
-      this.hasKeysSaved = Boolean(this.settings.apiKey && this.settings.secretKey);
+    /* AUDIT FIX: keys are only replaced when BOTH non-empty values arrive —
+     * saving settings with blank key fields can no longer wipe stored keys. */
+    if (opts && !this.running) {
+      const nk = String(opts.apiKey || '').trim();
+      const ns = String(opts.secretKey || '').trim();
+      if (nk && ns) {
+        this.settings.apiKey = nk;
+        this.settings.secretKey = ns;
+        this.client.setKeys(nk, ns);
+        this.hasKeysSaved = true;
+      }
     }
     this.scanner.setMinVolume(this.settings.minVolume24h);
     if (patch.port) this.ip.port = this.settings.port;
@@ -167,14 +191,18 @@ class Engine {
   async stop(closePositions) {
     if (!this.running) return { ok: false, error: 'Not running' };
     this.running = false;
+    this.stopLoops(); // loops must not fight the shutdown sequence
     let closed = 0;
     if (closePositions) {
       for (const [sym, pos] of Array.from(this.positions)) {
         try { await this.closePosition(pos, 'Season stop', 'MANUAL'); closed++; } catch (e) { logger.error('stop close ' + sym + ': ' + e.message); }
       }
-      // give closes a moment to reconcile
+      // give closes a moment to settle, then force reconciliation so the
+      // closed trades are recorded even though the engine is no longer running
       await sleep(2500);
-      await this.reconcile().catch(() => {});
+      this.forceReconcile = true;
+      try { await this.reconcile(); } catch (e) { logger.warn('stop reconcile: ' + e.message); }
+      this.forceReconcile = false;
     }
     if (this.season && this.season.status === 'RUNNING') {
       this.season.status = 'STOPPED';
@@ -223,7 +251,8 @@ class Engine {
     pos.pnl = strat.pnlUsd(pos.im || pos.margin, pos.roi);
     const long = pos.side === 'LONG';
 
-    if (pos.strategy === 'obv_compound') {
+    const mode = pos.adopted ? 'obv_compound' : pos.strategy;
+    if (mode === 'obv_compound') {
       /* trail first: at TP ROI the trail ARMS (per spec: "trail stop only TP 30% ROI hit
        * then 0.5% to make maximum profit") — no hard close while trailing is possible */
       pos.trail = strat.trailUpdate(pos.trail, price, long, this.settings.trailTriggerRoi, pos.roi, this.settings.trailDistancePct);
@@ -356,7 +385,7 @@ class Engine {
 
   /* ---------------- reconciliation: manual closes & fills ---------------- */
   async reconcile() {
-    if (!this.running) return;
+    if (!this.running && !this.forceReconcile) return;
     let openList;
     try { openList = await this.client.openPositions(); } catch (e) { return; }
     const ex = new Map();
@@ -401,7 +430,43 @@ class Engine {
         this.closePosition(pos, pos.closeReason || 'retry', pos.pendingExitType || 'ENGINE').catch(() => {});
       }
     }
+    // AUDIT FIX: adopt positions that exist on the exchange but are not tracked
+    // locally (e.g. the bot restarted while positions were open, or the user
+    // opened one manually) — otherwise they would be invisible & unmanaged.
+    for (const [sym, ep] of ex) {
+      if (this.positions.has(sym)) continue;
+      this.adoptPosition(sym, ep);
+    }
     store.save('state', this.snapshotState());
+  }
+
+  adoptPosition(symbol, ep) {
+    try {
+      const s = this.settings;
+      const long = +ep.positionType === 1;
+      const lev = clamp(+ep.leverage || s.leverage, 1, 200);
+      const entry = +ep.holdAvgPrice || this.scanner.fairPrice(symbol);
+      if (!entry || entry <= 0) return;
+      const pos = {
+        id: ++this.tradeSeq, symbol, side: long ? 'LONG' : 'SHORT',
+        strategy: s.strategy, adopted: true,
+        margin: round(+ep.im || 0, 2), leverage: lev, vol: +ep.holdVol,
+        entryPrice: entry, mark: entry, entryKnown: true,
+        aiScore: null, aiDirection: null, aiBreakdown: null, aiClass: null, confirmations: null,
+        entryReason: 'Adopted from MEXC (opened outside the bot or bot restarted)',
+        tpPrice: strat.roiToPrice(entry, lev, s.takeProfitRoi, long),
+        slPrice: strat.stopPrice(entry, lev, s.stopLossRoi, long),
+        tp1Price: strat.roiToPrice(entry, lev, 15, long),
+        tp2Price: strat.roiToPrice(entry, lev, s.takeProfitRoi, long),
+        initSlPrice: strat.stopPrice(entry, lev, s.stopLossRoi, long),
+        trail: { active: false, peak: null, stop: null }, trailStatus: 'WAITING',
+        openTime: Date.now(), positionId: ep.positionId,
+        roi: 0, pnl: 0, tp1Done: false, closing: false,
+      };
+      this.positions.set(symbol, pos);
+      this.emit('alert', `Adopted an open position on ${symbol} (${pos.side}, ${lev}x) — managing it with your TP/SL rules`);
+      logger.info(`ADOPTED ${symbol} ${pos.side} vol=${pos.vol} entry=${entry}`);
+    } catch (e) { logger.warn('adopt ' + symbol + ': ' + e.message); }
   }
 
   /* ---------------- strategy evaluation ---------------- */
@@ -492,6 +557,10 @@ class Engine {
       this.scanner.klines(symbol, 'Min60', 70).catch(() => null),
       this.scanner.klines(symbol, 'Hour4', 70).catch(() => null),
     ]);
+    if (!opts.live && this.settings.strategy === 'scalp_3m') {
+      // make sure real 3m candles exist before scoring (otherwise 15m proxies in)
+      await this.scanner.klines(symbol, 'Min1', 130).catch(() => null);
+    }
     const k15m = ind.dropForming(k15raw, INTERVAL_SEC.Min15);
     const t = this.scanner.tickers.get(symbol) || {};
     const bundle = {
@@ -640,7 +709,7 @@ class Engine {
       const price = this.scanner.fairPrice(pos.symbol) || pos.mark;
       const roi = strat.priceToRoi(pos.entryPrice, price, pos.leverage, pos.side === 'LONG');
       const pnl = strat.pnlUsd(pos.margin / Math.max(pos.vol, 1) * vol, roi);
-      this.recordTrade(pos, price, 'TP1', reason, roi, pnl, pos.openTime);
+      this.recordTrade(pos, price, 'TP1', reason, roi, pnl, pos.openTime, 'p1');
     } catch (e) {
       logger.error('partialClose ' + pos.symbol + ': ' + e.message);
     }
@@ -680,9 +749,9 @@ class Engine {
     this.recordTrade(pos, exitPrice, exitType, reason, roi, pnl, pos.openTime);
   }
 
-  recordTrade(pos, exitPrice, exitType, reason, roi, pnl, openedAt) {
+  recordTrade(pos, exitPrice, exitType, reason, roi, pnl, openedAt, idSuffix) {
     const t = {
-      id: pos.id, season: this.season ? this.season.id : null,
+      id: idSuffix ? pos.id + idSuffix : pos.id, season: this.season ? this.season.id : null,
       symbol: pos.symbol, side: pos.side, strategy: pos.strategy,
       margin: round(pos.im || pos.margin, 2), leverage: pos.leverage, vol: pos.vol,
       entry: pos.entryPrice, exit: exitPrice,

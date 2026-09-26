@@ -173,6 +173,38 @@ t('downtrend scores SHORT', () => {
   });
   assert.strictEqual(res.direction, 'SHORT', 'direction=' + res.direction);
 });
+t('AUDIT FIX: missing 1h/4h data is neutral, not bearish (MTF)', () => {
+  const up = gen(220, 100, 0.004, 0.0015);
+  const res = ai.evaluate({
+    symbol: 'NEW_USDT', price: ind.last(up).close, fundingRate: 0.0001,
+    oiNow: 1000, oi15mAgo: 900, k3m: up.slice(-60), k15m: up, k1h: null, k4h: null,
+  });
+  assert.strictEqual(res.breakdown.mtf, 15, 'fully aligned TFs must score 15 even when 1h/4h history is missing — got ' + res.breakdown.mtf);
+  assert.strictEqual(res.direction, 'LONG');
+});
+
+t('AUDIT FIX: settings ranges are clamped', () => {
+  const { Engine } = require('../server/engine');
+  const fake = { setMinVolume() {} };
+  const e = new Engine(fake);
+  e.updateSettings({ startMargin: '', leverage: -5, maxOpenTrades: 999, takeProfitRoi: 'abc' });
+  assert.strictEqual(e.settings.startMargin, 2, 'empty string must keep default');
+  assert.strictEqual(e.settings.leverage, 1, 'negative leverage clamps to 1');
+  assert.strictEqual(e.settings.maxOpenTrades, 20, 'over-max clamps to 20');
+  assert.strictEqual(e.settings.takeProfitRoi, 30, 'NaN input keeps current value');
+});
+
+t('AUDIT FIX: keys are never wiped by blank settings save', () => {
+  const { Engine } = require('../server/engine');
+  const e = new Engine({ setMinVolume() {} });
+  e.updateSettings({}, { apiKey: '', secretKey: '' });
+  assert.strictEqual(e.settings.apiKey, '', 'still empty — nothing set yet');
+  e.updateSettings({}, { apiKey: 'key123', secretKey: 'sec456' });
+  assert.strictEqual(e.settings.apiKey, 'key123');
+  e.updateSettings({}, { apiKey: '', secretKey: '' });
+  assert.strictEqual(e.settings.apiKey, 'key123', 'blank save must NOT wipe stored keys');
+});
+
 t('classification labels match spec table', () => {
   assert.strictEqual(ai.classify(95).label, 'Elite Setup');
   assert.strictEqual(ai.classify(85).label, 'Strong');

@@ -58,11 +58,14 @@ class Scanner {
     const now = Date.now();
     for (const t of all) {
       this.tickers.set(t.symbol, t);
-      // open interest history (contracts), keep 20 min
-      let h = this.oiHistory.get(t.symbol);
-      if (!h) { h = []; this.oiHistory.set(t.symbol, h); }
-      h.push({ t: now, holdVol: +t.holdVol || 0 });
-      if (h.length > 400) h.splice(0, h.length - 400);
+      // AUDIT FIX: track OI history only for tradeable USDT pairs (was: every
+      // contract on the exchange -> hundreds of dead arrays growing forever)
+      if (t.symbol && t.symbol.endsWith('_USDT') && (+t.amount24 || 0) >= this.minVolume * 0.5) {
+        let h = this.oiHistory.get(t.symbol);
+        if (!h) { h = []; this.oiHistory.set(t.symbol, h); }
+        h.push({ t: now, holdVol: +t.holdVol || 0 });
+        if (h.length > 320) h.splice(0, h.length - 320); // 15 min @ 3s + margin
+      }
     }
     // eligible universe: *_USDT contracts enabled by exchange + state + min 24h turnover
     const out = [];
@@ -144,6 +147,8 @@ class Scanner {
     const ttl = interval === 'Min15' ? 45000 : interval === 'Min1' ? 20000 : 90000;
     if (c && Date.now() - c.ts < ttl) return c.candles;
     const candles = await this.client.kline(symbol, interval, count);
+    // delete-first keeps Map insertion order fresh so eviction never drops hot entries
+    this.klineCache.delete(key);
     this.klineCache.set(key, { ts: Date.now(), candles });
     if (this.klineCache.size > 3000) {
       // evict oldest third

@@ -17,7 +17,7 @@ Development by **BadalWorld** · Contact: [t.me/anonymousvai](https://t.me/anony
 | **Market scanner** | Live rotating scan of every USDT pair with ≥ your min 24h volume (default **$5M**) — price, market cap, 24h vol, 24h%, 15m %, AI bias LONG/SHORT/NEUTRAL, funding, OI value. 40 rolling rows, animated, updates every second |
 | **TradeMaster robot** | Animated robot (bottom-right) that **talks every action**: “New trade open — congratulations, pair X”, “This pair made profit $X”, “Sorry, we lost this pair $X” — with voice on/off |
 | **Dashboard** | Real-time balance (auto-updates), ping in ms (green <100, red ≥100), your IP with one-click copy, power START/STOP button (green start / red stop) that opens the settings + API key modal, active positions with **TP price, SL price, trailing status, live AI score**, win rate, completed trades, compounding liquid reactor (−100 loss … 0 … +100 profit), Millionaire Path progress to $1,000,000, archive page with season sparklines |
-| **Safety net** | Exchange-side stop-loss is attached to every position on MEXC itself — if your server dies, the SL still protects you |
+| **Safety net** | Exchange-side stop-loss is attached to every position on MEXC itself — if your server dies, the SL still protects you. If the bot restarts while positions are open, it **adopts** them and keeps managing them with your TP/SL rules |
 
 > **Note:** MEXC has **no native 3-minute kline**, so the bot builds exact 3m candles by aggregating 1m data — entries fire only on **confirmed candle closes** (no repainting).
 

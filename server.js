@@ -50,6 +50,6 @@ const { logger, publicIP, localIPs, sleep } = require('./server/util');
     require('./server/store').flushAll();
     process.exit(0);
   });
-  process.on('uncaughtException', (e) => logger.error('uncaught: ' + e.stack ? e.message : e.message));
-  process.on('unhandledRejection', (e) => logger.error('unhandled rejection: ' + (e && e.message ? e.message : e)));
+  process.on('uncaughtException', (e) => logger.error('uncaught exception: ' + (e && e.stack ? e.stack : e)));
+  process.on('unhandledRejection', (e) => logger.error('unhandled rejection: ' + (e && (e.stack || e.message) ? (e.stack || e.message) : e)));
 })();
