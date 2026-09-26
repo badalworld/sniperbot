@@ -243,8 +243,8 @@
     pb.classList.toggle('running', s.running);
     $('powerLabel').textContent = s.running ? 'STOP' : 'START';
     $('powerHint').textContent = s.running
-      ? 'Engine RUNNING — press to stop'
-      : 'Engine stopped — press to configure & start';
+      ? '🌌 GALAXY CORE ACTIVE — press to stop'
+      : '🌌 Galaxy core idle — press to ignite & configure';
 
     // engine status card
     let st = s.running ? 'RUNNING' : 'STANDBY';
