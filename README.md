@@ -115,6 +115,16 @@ All settings persist in `data/settings.json` (local only, never uploaded). Trade
 
 ---
 
+## 🚦 Go-live preflight checklist (read before connecting real money)
+
+1. `git pull` · `node server.js` · dashboard opens
+2. MEXC → API Management: key has **Futures trade** permission; if IP whitelist is on, add the exact IP shown on the dashboard (COPY button)
+3. MEXC Futures account set to **Hedge Mode** (Preferences → Position Mode)
+4. Your PC clock is auto-synced (signed requests fail if the clock is minutes off — the bot now tells you if this happens)
+5. Press START → enter keys → SAVE & START. The engine validates keys with a signed balance call before anything else
+6. First session: leave Start Margin at **$2**, watch the AI Decision Log for a day. Verify opens/closes match the log before scaling up
+7. Know the exits: every position carries an exchange-side stop-loss, TP/trailing are engine-managed, and "Stop + close positions" closes everything at market
+
 ## 🧪 Self-test
 
 ```
