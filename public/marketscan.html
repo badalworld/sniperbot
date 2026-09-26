@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Market Scanner — MEXC AI Fusion | BadalWorld</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%2304060f' stroke='%2300e5ff'/%3E%3Cpath d='M17 5 L9 18 h5 l-2 9 9 -14 h-5 z' fill='%2300e5ff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="logo">
+      <div class="bolt">⚡</div>
+      <div>
+        <h1>MEXC AI FUSION</h1>
+        <small>COMPOUNDING MASTER · BY BADALWORLD</small>
+      </div>
+    </div>
+    <nav class="tabs">
+      <a href="/">Dashboard</a>
+      <a href="/marketscan" class="active">Market Scan</a>
+      <a href="/archive">Archive</a>
+    </nav>
+    <div class="header-right">
+      <span class="live-badge stopped" id="liveBadge">○ STANDBY</span>
+      <span class="chip" id="pingChip"><span class="lbl">PING</span>…</span>
+      <span class="chip" id="ipChip" title="Click to copy your IP"><span class="lbl">IP</span>…</span>
+      <button class="iconbtn" id="voiceBtn" title="Toggle TradeMaster voice">🔊</button>
+    </div>
+  </header>
+
+  <div class="scan-header">
+    <div class="radar"><div class="sweep"></div></div>
+    <div>
+      <div class="searching-txt" id="scanStatus">SEARCHING MARKETS…</div>
+      <div class="mini-note" id="scanMeta">connecting to MEXC…</div>
+    </div>
+    <div class="grow" style="flex:1"></div>
+    <span class="chip"><span class="lbl">UNIVERSE</span><span id="uniCount">—</span></span>
+    <span class="chip"><span class="lbl">PASS VOL FILTER</span><span id="passCount" style="color:var(--green)">—</span></span>
+    <span class="chip"><span class="lbl">MIN 24H VOL</span><span id="minVol">—</span></span>
+    <span class="chip"><span class="lbl">ROWS</span><span id="rowCount" style="color:var(--cyan)">0/40</span></span>
+  </div>
+  <div class="scanbar"><i></i></div>
+
+  <div class="tblwrap">
+    <table class="tbl" id="scanTable" style="min-width:920px">
+      <thead>
+        <tr>
+          <th>#</th><th>Pair</th><th>Price</th><th>Market Cap</th><th>24h Volume</th><th>24h %</th>
+          <th>15m %</th><th>AI Bias Score</th><th>Direction</th><th>Funding</th><th>OI Value</th><th>Scanned</th>
+        </tr>
+      </thead>
+      <tbody id="scanBody">
+        <tr><td colspan="12" class="small-dim" style="text-align:center;padding:28px">Initializing scanner…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:14px;padding:12px 16px">
+    <span class="mini-note">📡 The scanner rotates through every eligible pair continuously — the newest analyses enter at the top, the 40th row and beyond drop off the bottom. Full AI scores (0–100) are computed by the engine before any trade; this list shows the live quick-bias. Data font is kept regular for comfortable reading.</span>
+  </div>
+
+  <footer class="credit">
+    <div class="brand">⚡ MEXC AI FUSION — DEVELOPMENT BY BADALWORLD</div>
+    <div style="margin-top:6px">Contact Us — <a href="https://t.me/anonymousvai" target="_blank" rel="noopener">t.me/anonymousvai</a></div>
+  </footer>
+</div>
+
+<div id="toasts"></div>
+<script src="/js/common.js"></script>
+<script src="/js/robot.js"></script>
+<script src="/js/marketscan.js"></script>
+</body>
+</html>
